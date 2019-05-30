@@ -17,9 +17,9 @@ RUN     set -x \
         && mkdir -p installtmp \
         && cd installtmp \
         \
-        && curl https://codeload.github.com/reamyx/ppp-zxmodify/zip/master -o ppp-zxmodify.zip \
-        && unzip ppp-zxmodify.zip \
-        && cd ppp-zxmodify-master \
+        && curl https://codeload.github.com/reamyx/ppp-zxmd/zip/master -o ppp-zxmd.zip \
+        && unzip ppp-zxmd.zip \
+        && cd ppp-zxmd-master \
         && ./configure \
         && make \
         && make install \
