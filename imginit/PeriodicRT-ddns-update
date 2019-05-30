@@ -1,0 +1,37 @@
+#!/bin/env sh
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin" 
+cd "$(dirname "$0")"; exec 4>&1; ECHO(){ echo "${@}" >&4; }
+[ "$ECHO" == "Ok" ] || { exec 3<>"/dev/null";exec 0<&3;exec 1>&3;exec 2>&3; }
+
+#基本配置
+URL="http://ddns.local:1253/namemapv2"
+NAME="${1:-$HOSTNAME}"
+TAGT="$2"
+MTTL="${3:-35}"
+DENCPW="./aesenc.key"
+DEFKEY="abc000"
+
+#简易请求,适用于从安全环境访问
+    curl --connect-timeout 3 -X "POST" -d "SIMPLEPM;$NAME;V4HOST;;" "$URL" &
+    #curl --connect-timeout 3 "$URL?SIMPLEPM;$NAME;V4HOST;;" &
+exit 0
+
+#加密请求,适用于从公网访问
+
+    #加密参数
+    [ -r "$DENCPW" ] && read -t 1 KEY < "$DENCPW"; KEY="${KEY:-$DEFKEY}"
+    read -t 1 KIV < "/proc/sys/kernel/random/uuid"; KIV="${KIV:-$(uuidgen)}"
+    KIV="$(echo "$KIV" | tr "[[:lower:]-]" "[[:upper:]\0]")"; KIV="${KIV::8}"
+    
+    #源始串
+    RQPM="[{ \"name\": \"$NAME\", \"maptype\": \"V4HOST\",
+             \"target\": \"$TAGT\", \"mapttl\": \"$MTTL\" }]"
+    
+    #加密串(base64)
+    RQPM="$( echo "$RQPM" | jq -cM "." | \
+             openssl enc -e -aes-128-cbc -a -K "$KEY" -iv "$KIV" | tr "\n" "\0" )"
+    
+    curl --connect-timeout 3 -X "POST" -d "$KIV$RQPM" "$URL" &
+    #curl --connect-timeout 3 "$URL?$KIV$RQPM" &
+
+###########################################################################
