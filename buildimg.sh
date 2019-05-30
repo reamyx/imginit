@@ -11,12 +11,8 @@ IMGNM="${PUSH:+$PUSH/}$IMGNM" BASEPL="${PUSH:+$PUSH/}$BASE"
 [ -n "$BASE" ] && docker pull "$BASEPL" && \
 docker tag "$BASEPL" "$BASE" || { echo "依赖镜像[ $BASE ]拉取失败,构建终止."; exit; }
 
-#构建
-docker build -t "$IMGNM" ./ && echo "构建镜像[ $IMGNM ]完成."
-
-#推送
+#构建,推送
+docker build -t "$IMGNM" ./ && echo "构建镜像[ $IMGNM ]完成." && \
 [ -n "$PUSH" ] && docker push "$IMGNM" && echo "推送镜像[ $IMGNM ]完成."
-
-
 
 exit 0
