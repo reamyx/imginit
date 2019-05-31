@@ -9,8 +9,7 @@ docker container run --detach --rm \
 --sysctl "net.ipv4.ip_forward=1" \
 --device /dev/ppp --device /dev/net/tun \
 --volume /etc/localtime:/etc/localtime:ro \
---dns 192.168.15.192 --dns-search local \
-registry.cn-hangzhou.aliyuncs.com/zhixia/imginit:base
+--dns 192.168.15.192 --dns-search local imginit
 
 docker network connect emvn zt01
 docker container exec -it zt01 bash
@@ -23,8 +22,7 @@ docker container run --detach --restart always \
 --sysctl "net.ipv4.ip_forward=1" \
 --device /dev/ppp --device /dev/net/tun \
 --volume /etc/localtime:/etc/localtime:ro \
---dns 192.168.15.192 --dns-search local \
-registry.cn-hangzhou.aliyuncs.com/zhixia/imginit:base
+--dns 192.168.15.192 --dns-search local imginit
 
 docker network connect emvn zt02
 docker container exec -it zt02 bash
