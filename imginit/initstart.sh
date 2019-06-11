@@ -134,7 +134,7 @@ SSH_SRV_UP() {
     iptables -t filter -A INTLCH "${SSHRL[@]}"; echo "$ROOTPWD" | passwd --stdin root
     for ID in {1..10}; do MSG_DELAY 0.4; pidof "$SSHNM" || break; done
     ( MSG_DELAY CLOSE; exec -a "$SSHNM" dropbear \
-      -F -E -R -a -b "$SSHWCM" -I 600 -p "$SSHPORT" )&
+      -F -E -R -a -b "$SSHWCM" -I 600 -K 30 -p "$SSHPORT" )&
     ECHO "SSH service [re]started with port [ $SSHPORT} ]."; }
     
 #OVPN远程接入服务初始化
@@ -193,7 +193,7 @@ INET_DIAL_UP() {
     local PSWD="$( echo "$INTCFG" | jq -r ".inetdail.dialpswd|strings" )"
     local INTF="$( echo "$INTCFG" | jq -r ".inetdail.dialintf|strings" )"
     local ENGW="$( echo "$INTCFG" | jq -r ".inetdail.usedefgw|strings" )"
-    [[ "$ENGW" =~ ^"YES"|"yes"$ ]] && ENGW="PATHBACK" || ENGW="DEFROUTE PATHBACK PEERDNS"
+    [[ "$ENGW" =~ ^"YES"|"yes"$ ]] && ENGW="DEFROUTE PATHBACK PEERDNS" || ENGW="PATHBACK"
     [ "$INETPM" == "$USER-$PSWD-$INTF-$ENGW" ] && $POEDL "pid" && return
     INETPM="$USER-$PSWD-$INTF-$ENGW"
     ( MSG_DELAY CLOSE; exec $POEDL "upfront" "$USER" "$PSWD" "$INTF" "$ENGW" )&
