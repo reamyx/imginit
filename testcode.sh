@@ -3,7 +3,7 @@ exit 0
 
 #测试01
 docker stop zt01; docker rm zt01; \
-docker container run --detach --rm \
+docker container run --detach --restart always \
 --name zt01 --hostname zt01 \
 --network imvn --cap-add NET_ADMIN \
 --sysctl "net.ipv4.ip_forward=1" \

@@ -16,11 +16,9 @@ MSG_DELAY() {
 
 #根据参数指示执行功能或发送控制指令
 case "$1" in
-"syslink" ) ln -fs "$PWD/${0##*/}" "/usr/local/bin";;
 "restart" ) MSG_DELAY SEND "SRVRESTART";;
 "stop"    ) MSG_DELAY SEND "SRVSTOP";;
 *         ) exit 2;;
 esac
 
 MSG_DELAY CLOSE; exit 0
-

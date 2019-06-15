@@ -9,13 +9,11 @@ ADD     imginit     /srv/imginit/
 WORKDIR /srv/imginit
 
 #基础工具和功能软件包
-RUN     set -x \
+RUN     set -x && cd \
         && yum -y install epel-release \
-        && yum -y install man which libpcap ipset sqlite3 inotify-tools iproute \
+        && yum -y install man which nano libpcap ipset sqlite3 inotify-tools iproute \
                   psmisc sysvinit-tools nmap-ncat dropbear sshpass openvpn ppp unzip \
         && yum -y install gcc make automake openssh-server openssl-devel \
-        && mkdir -p installtmp \
-        && cd installtmp \
         \
         && curl https://codeload.github.com/reamyx/ppp-zxmd/zip/master -o ppp-zxmd.zip \
         && unzip ppp-zxmd.zip \
@@ -27,15 +25,13 @@ RUN     set -x \
         && \cp -sf /usr/local/sbin/ppp* /usr/sbin/ \
         \
         && curl -L  https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o jq \
-        && chmod +x ./jq \
-        && mv -f ./jq /usr/local/bin \
-        \
-        && cd ../ \
         && \cp /usr/libexec/openssh/sftp-server /usr/libexec/sftp-server \
+        && ln -sf "./sleep" "$(dirname "$(which sleep)")/DoNothing" \
+        && chmod +x jq /srv/imginit/srvctl \
+        && mv -f jq /srv/imginit/srvctl /usr/local/bin \
         && yum -y history undo last \
         && yum clean all \
-        && rm -rf installtmp /tmp/* /etc/ppp/* \
-        && find ../ -name "*.sh" -exec chmod +x {} \;
+        && rm -rf /tmp/* /etc/ppp/* ~/*
 
 ENV       ZXDK_THIS_IMG_NAME    "imginit"
 

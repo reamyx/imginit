@@ -6,10 +6,6 @@ exec 4>&1; ECHO(){ echo "${@}" >&4; }; exec 3<>"/dev/null"; exec 0<&3;exec 1>&3;
 echo "Container startup with image [ $ZXDK_THIS_IMG_NAME ] at \
 [ $( date "+%F/%T/%Z" ) ], local name [ $HOSTNAME ]."
 
-#辅助程序
-ln -sf "./sleep" "$(dirname "$(which sleep)")/DoNothing"
-[ -f "./srvctl" ] && { chmod +x "./srvctl"; ( setsid "./srvctl" "syslink" & ); }
-
 #非首次启动时忽略来自环境变量的配置数据并使用历史目标服务名称
 TSFL="./TargetSrv.Dir"
 [ -r "$TSFL" ] && { SRVCFG=""; read -t 1 SRVNAME < "$TSFL"; SRVNAME="${SRVNAME##*/}"; }
@@ -115,7 +111,7 @@ APPLY_FW_RULE() {
 #SSH服务初始化
 SSHNM="DropBear-sshsrv"; SSHPM=""; pkill -f "$SSHNM"; SSHRL=(); SSHWCM="./ssh.welcome"
 SSH_WELCOME() {
-    echo -e "\nWelcome to use docker image \"imginit:multisrv\"." > "$SSHWCM"
+    echo -e "\nWelcome to use docker image \"imginit\"." > "$SSHWCM"
     echo -e "Problem feedback to reamyx@126.com, thank you.\n" >> "$SSHWCM"; }
 SSH_SRV_UP() {
     [ "$1" == "keepalive" ] && { [ -z "$SSHPM" ] || pidof "$SSHNM" && return; }
