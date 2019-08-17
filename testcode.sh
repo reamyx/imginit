@@ -18,10 +18,10 @@ docker container exec -it zt01 bash
 SRVCFG='{"initdelay":3,
 "workstart":"DoNothing",
 "workwatch":15,"workintvl":10,
-"firewall":{"tcpportpmt":"8000:8009",
-"udpportpmt": "8000:8009"},
+"firewall":{"tcpportpmt":"80:99,4505:4506",
+"udpportpmt": "80:99"},
 "sshsrv":{"enable":"yes",
-"sshport": 8022,"rootpwd":"abc000"},
+"sshport": 24,"rootpwd":"abc000"},
 "inetdail":{"enable":"yes",
 "dialuser":"a15368400819",
 "dialpswd":"a123456"}}'; \
@@ -37,3 +37,16 @@ docker container run --detach --restart always \
 docker network connect emvn zt02
 
 docker container exec -it zt02 bash
+
+
+
+#centos测试
+docker stop zt03; docker rm zt03; \
+docker container run --detach --rm \
+--name zt03 --hostname zt03 \
+--network imvn --cap-add NET_ADMIN \
+--sysctl "net.ipv4.ip_forward=1" \
+--device /dev/ppp --device /dev/net/tun \
+--volume /etc/localtime:/etc/localtime:ro \
+--dns 192.168.15.192 --dns-search local centos sleep 500h
+

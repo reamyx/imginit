@@ -9,29 +9,48 @@ ADD     imginit     /srv/imginit/
 WORKDIR /srv/imginit
 
 #基础工具和功能软件包
-RUN     set -x && cd \
-        && yum -y install epel-release \
-        && yum -y install man which nano libpcap ipset sqlite3 inotify-tools iproute \
-                  psmisc sysvinit-tools nmap-ncat dropbear sshpass openvpn ppp unzip \
+RUN     set -x && cd && rm -rf * \
+        && yum clean all \
+        && rm -rf /etc/yum.repos.d/* \
+        && curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo \
+        && sed -i '/mirrors.cloud.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo \
+        && sed -i '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo \
+        && curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 https://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-7 \
+        && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
+        && curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo \
+        && curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 https://mirrors.aliyun.com/epel/RPM-GPG-KEY-EPEL-7 \
+        && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 \
+        && curl -O http://opensource.wandisco.com/git/wandisco-git-release-7-2.noarch.rpm \
+        && rpm -ivh wandisco-git-release-7-2.noarch.rpm \
+        && rm -f wandisco-git-release-7-2.noarch.rpm \
+        && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-WANdisco \
+        \
+        && yum -y install man which nano unzip libpcap ipset sqlite3 inotify-tools iproute \
+                  psmisc sysvinit-tools nmap-ncat dropbear sshpass ppp openvpn git keepalived \
         && yum -y install gcc make automake openssh-server openssl-devel \
         \
-        && curl https://codeload.github.com/reamyx/ppp-zxmd/zip/master -o ppp-zxmd.zip \
-        && unzip ppp-zxmd.zip \
-        && cd ppp-zxmd-master \
+        && git clone https://github.com/reamyx/ppp-zxmd \
+        && cd ppp-zxmd \
         && ./configure \
         && make \
         && make install \
-        && cd - \
         && \cp -sf /usr/local/sbin/ppp* /usr/sbin/ \
+        && rm -rf /etc/ppp/* \
+        && cd \
         \
-        && curl -L  https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o jq \
+        && curl -L -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 \
+        && chmod +x jq \
+        && mv -f jq /usr/local/bin \
+        \
         && \cp /usr/libexec/openssh/sftp-server /usr/libexec/sftp-server \
         && ln -sf "./sleep" "$(dirname "$(which sleep)")/DoNothing" \
-        && chmod +x jq /srv/imginit/srvctl \
-        && mv -f jq /srv/imginit/srvctl /usr/local/bin \
+        \
+        && chmod +x /srv/imginit/srvctl \
+        && mv -f /srv/imginit/srvctl /usr/local/bin \
+        \
         && yum -y history undo last \
         && yum clean all \
-        && rm -rf /tmp/* /etc/ppp/* ~/*
+        && rm -rf /tmp/* ./*
 
 ENV       ZXDK_THIS_IMG_NAME    "imginit"
 
