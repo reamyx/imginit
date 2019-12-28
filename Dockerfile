@@ -1,6 +1,6 @@
 #官方centos7镜像初始化,镜像TAG: imginit
 
-FROM        centos:7.7.1908
+FROM        centos:7
 LABEL       function="imginit",maintainer="zhixia,reamyx@126.com"
 
 #添加本地资源
