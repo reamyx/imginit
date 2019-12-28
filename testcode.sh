@@ -48,5 +48,13 @@ docker container run --detach --rm \
 --sysctl "net.ipv4.ip_forward=1" \
 --device /dev/ppp --device /dev/net/tun \
 --volume /etc/localtime:/etc/localtime:ro \
---dns 192.168.15.192 --dns-search local centos sleep 500h
+--dns 114.114.114.114 --dns-search local centos sleep 500h
 
+
+docker stop zt03; docker rm zt03; \
+docker container run --detach --rm \
+--name zt03 --hostname zt03 \
+centos:7 sleep 500h
+
+
+docker run -d -i -t centos /bin/bash

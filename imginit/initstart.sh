@@ -1,9 +1,9 @@
 #!/bin/env sh
-PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"; cd "$(dirname "$0")"
-exec 4>&1; ECHO(){ echo "${@}" >&4; }; exec 3<>"/dev/null"; exec 0<&3;exec 1>&3;exec 2>&3
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+cd "$(dirname "$0")"; exec 4>&1; ECHO(){ echo "${@}" >&4; }
 
-#容器启动日志
-echo "Container startup with image [ $ZXDK_THIS_IMG_NAME ] at \
+#启动日志
+ECHO "Container startup with image [ $ZXDK_THIS_IMG_NAME ] at \
 [ $( date "+%F/%T/%Z" ) ], local name [ $HOSTNAME ]."
 
 #非首次启动时忽略来自环境变量的配置数据并使用历史目标服务名称
@@ -22,8 +22,6 @@ echo "$SRVNAME" > "$TSFL"; cd "$SRVNAME" || rm -rf "$TSFL"
 POEDL="../imginit/inetdial.sh"
 CFGFL="./workcfg.json"
 CNTFL="./service.run.count"
-OVDIR="../imginit/ovpn"
-OVPWD="$OVDIR/pwd"
 
 #若存在来自环境变量的配置数据则覆写到功能配置文件
 touch "$CFGFL"; [ -n "$SRVCFG" ] && {
@@ -64,8 +62,7 @@ iptables -t filter -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -t filter -A INPUT -j SRVLCH
 iptables -t filter -A INPUT -j INTLCH
 iptables -t filter -A INPUT -i lo -j ACCEPT
-iptables -t filter -A INPUT -i tuninits -j ACCEPT
-iptables -t filter -A INPUT -i tuninitc -j ACCEPT
+iptables -t filter -A INPUT -i pppossh+ -j ACCEPT
 iptables -t filter -A INPUT -j REJECT --reject-with icmp-host-prohibited
 iptables -t filter -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -t filter -A FORWARD -j SRVFWD
@@ -133,50 +130,6 @@ SSH_SRV_UP() {
       -F -E -R -a -b "$SSHWCM" -I 600 -K 30 -p "$SSHPORT" )&
     ECHO "SSH service [re]started with port [ $SSHPORT} ]."; }
     
-#OVPN远程接入服务初始化
-OVSNM="ovpn-ser-init"; OVSPM=""; pkill -f "$OVSNM"; OVSRL=()
-OVPN_SRV_UP() {
-    [ "$1" == "keepalive" ] && { [ -z "$OVSPM" ] || pidof "$OVSNM" && return; }
-    [ -z "$INTCFG" ] && CFG_CHECK "intcfg"; iptables -t filter -D INTLCH "${OVSRL[@]}"
-    [[ "$( echo "$INTCFG" | jq -r ".ovpnser.enable|strings" )" =~ ^"YES"|"yes"$ ]] \
-    || { pkill -f "$OVSNM"; OVSPM=""; return; }
-    #参数更新或服务失败时重启,执行前配置准入规则
-    local SRVPORT="$( echo "$INTCFG" | jq -r ".ovpnser.srvport|numbers" )"
-    local DEFUSER="$( echo "$INTCFG" | jq -r ".ovpnser.defuser|strings" )"
-    local DEFPSWD="$( echo "$INTCFG" | jq -r ".ovpnser.defpswd|strings" )"
-    SRVPORT="${SRVPORT:-1258}"
-    [ -z "$DEFUSER" ] && { DEFUSER="ovinit"; DEFPSWD="ovinit123"; }
-    [ "$OVSPM" == "$SRVPORT-$DEFUSER-$DEFPSWD" ] && pidof "$OVSNM" && {
-        iptables -t filter -A INTLCH "${OVSRL[@]}"; return; }
-    pkill -f "$OVSNM"; OVSPM="$SRVPORT-$DEFUSER-$DEFPSWD"
-    OVSRL=( -p tcp -m tcp --dport "$SRVPORT" -m conntrack --ctstate NEW -j ACCEPT )
-    iptables -t filter -A INTLCH "${OVSRL[@]}"; echo "$DEFPSWD" > "$OVPWD/$DEFUSER.pwd"
-    for ID in {1..10}; do MSG_DELAY 0.4; pidof "$OVSNM" || break; done
-    ( MSG_DELAY CLOSE; exec -a "$OVSNM" openvpn \
-      --cd "$OVDIR" --lport "$SRVPORT" --config "ovser.conf" )&
-    ECHO "Openvpn service [re]started with port [ $SRVPORT} ]."; }
-    
-#OVPN远程连接服务初始化
-OVCNM="ovpn-clt-init"; OVCPM=""; pkill -f "$OVCNM"
-OVPN_CLT_UP() {
-    [ "$1" == "keepalive" ] && { [ -z "$OVCPM" ] || pidof "$OVCNM" && return; }
-    [ -z "$INTCFG" ] && CFG_CHECK "intcfg"
-    [[ "$( echo "$INTCFG" | jq -r ".ovpnclt.enable|strings" )" =~ ^"YES"|"yes"$ ]] \
-    || { pkill -f "$OVCNM"; OVCPM=""; return; }
-    #参数更新或服务失败时重启
-    local RMTPORT="$( echo "$INTCFG" | jq -r ".ovpnclt.rmtport|numbers"  )"
-    local RMTADDR="$( echo "$INTCFG" | jq -r ".ovpnclt.rmtaddr|strings"  )"
-    local RMTUSER="$( echo "$INTCFG" | jq -r ".ovpnclt.username|strings" )"
-    local RMTPSWD="$( echo "$INTCFG" | jq -r ".ovpnclt.password|strings" )"
-    RMTPORT="${RMTPORT:-1258}"; [ -z "$RMTUSER" ] && { RMTUSER="ovinit"; RMTPSWD="ovinit123"; }
-    [ "$OVCPM" == "$RMTPORT-$RMTADDR-$RMTUSER-$RMTPSWD" ] && pidof "$OVCNM" && return
-    pkill -f "$OVCNM"; OVCPM="$RMTPORT-$RMTADDR-$RMTUSER-$RMTPSWD"
-    echo -e "$RMTUSER\n$RMTPSWD" > "$OVPWD/default.up"
-    for ID in {1..10}; do MSG_DELAY 0.4; pidof "$OVCNM" || break; done
-    ( MSG_DELAY CLOSE; exec -a "$OVCNM" openvpn \
-      --cd "$OVDIR" --remote "$RMTADDR" --rport "$RMTPORT" --config "ovclt.conf" )&
-    ECHO "Openvpn client [re]started with target [ $RMTADDR:$RMTPORT} ]."; } 
-    
 #拨号网络初始化
 INETPM=""; $POEDL "down"
 INET_DIAL_UP() {
@@ -197,9 +150,9 @@ INET_DIAL_UP() {
 
 #支持服务启动过程
 INIT_SRV_STARTUP() {
-    #防火墙,ssh服务,远程接入,远程连接,拨号网络,保活启动时复位配置数据
-    [ "$1" == "keepalive" ] && INTCFG="" || INTCFG="$SRVCFG"; APPLY_FW_RULE "$1"
-    SSH_SRV_UP "$1"; OVPN_SRV_UP "$1"; OVPN_CLT_UP "$1"; INET_DIAL_UP "$1"; }
+    #防火墙,ssh服务,拨号网络,保活启动时复位配置数据
+    [ "$1" == "keepalive" ] && INTCFG="" || INTCFG="$SRVCFG"; 
+    APPLY_FW_RULE "$1"; SSH_SRV_UP "$1"; INET_DIAL_UP "$1"; }
 
 #清除容器内服务进程并等待指定时长后终止运行
 TREM_AND_EXIT() {

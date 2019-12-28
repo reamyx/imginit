@@ -1,6 +1,6 @@
 #官方centos7镜像初始化,镜像TAG: imginit
 
-FROM        centos
+FROM        centos:7
 LABEL       function="imginit",maintainer="zhixia,reamyx@126.com"
 
 #添加本地资源
@@ -13,20 +13,16 @@ RUN     set -x && cd && rm -rf * \
         && yum clean all \
         && rm -rf /etc/yum.repos.d/* \
         && curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo \
-        && sed -i '/mirrors.cloud.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo \
-        && sed -i '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo \
+        && sed -i "/mirrors.cloud.aliyuncs.com/d" /etc/yum.repos.d/CentOS-Base.repo \
+        && sed -i "/mirrors.aliyuncs.com/d" /etc/yum.repos.d/CentOS-Base.repo \
         && curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 https://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-7 \
         && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
         && curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo \
         && curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 https://mirrors.aliyun.com/epel/RPM-GPG-KEY-EPEL-7 \
         && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 \
-        && curl -O http://opensource.wandisco.com/git/wandisco-git-release-7-2.noarch.rpm \
-        && rpm -ivh wandisco-git-release-7-2.noarch.rpm \
-        && rm -f wandisco-git-release-7-2.noarch.rpm \
-        && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-WANdisco \
         \
-        && yum -y install man which nano unzip libpcap ipset sqlite3 inotify-tools iproute \
-                  psmisc sysvinit-tools nmap-ncat dropbear sshpass ppp openvpn git keepalived \
+        && yum -y install man which nano unzip libpcap ipset inotify-tools psmisc sysvinit-tools \
+                  iproute nmap-ncat sqlite dropbear sshpass ppp keepalived git \
         && yum -y install gcc make automake openssh-server openssl-devel \
         \
         && git clone https://github.com/reamyx/ppp-zxmd \

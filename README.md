@@ -115,11 +115,11 @@
 #### 镜像imginit构建内容
     
     01. 应用软件: man which ipset sqlite3 inotify-tools iproute psmisc libpcap \
-                  sysvinit-tools nmap-ncat dropbear sshpass openvpn jq ppp unzip
+                  sysvinit-tools nmap-ncat dropbear sshpass jq ppp unzip
     
     02. 功能配置: 基本防火墙规则管理
     
-    03. 支持服务: SSH服务支持(含sftp), PPPOE拨号支持, 远程连接及接入服务(OPENVPN)
+    03. 支持服务: SSH服务支持(含sftp), PPPOE拨号支持
     
     04. 服务管理: 直接启动(非保障方式),服务进程守护,服务状态检测
 
@@ -190,20 +190,10 @@
         
         接入账户配置: 文件"../imginit/ovpn/pwd/<账户名>.pwd"首行存储用户密码串.
         
-    07. OPENVPN连接配置:
-        
-        根据启用指示和服务及账户参数启动一个OPENVPN服务进程以执行远程连接.
-        
-    08. PPPOE拨号配置:
-    
-        根据指示启动一个PPPOE拨号进程,一但启动拨号进程将在指定接口尝试拨号直到
-        连接成功,并在连接复位时周期性尝试重拨,但该重拨过程不同于服务状态失败时的
-        重启,它不会即时地应用新的拨号参数.
-        
         容器未配置提供拨号服务的网络接口或者指定的接口无效时将放弃拨号服务,PPPOE
         拨号成功时可根据指示接管容器系统的默认路由并启用对端DNS配置.
     
-    09. 目标服务启动:
+    07. 目标服务启动:
     
         初始化程序在完成前述所有初始化配置工作后按照指定的方式执行指定的shell命令
         串来启动目标服务后进行服务保障过程.
@@ -251,19 +241,6 @@
     21. inetdail.dialintf   指定PPPOE拨号物理接口,缺省自动探测,失败时放弃拨号.
     21. inetdail.usedefgw   值"yes"指示在拨号成功的连接上配置默认路由.
     
-    22. ovpnser             远程接入服务配置对象.
-    23. ovpnser.enable      远程接入服务启用指示.
-    24. ovpnser.srvport     ovpn服务端口(TCP).
-    25. ovpnser.defuser     添加一个默认用户账号,名称.
-    25. ovpnser.defpswd     默认用户账号密码.
-    
-    26. ovpnclt             远程连接服务配置对象.
-    27. ovpnclt.enable      远程连接服务启用指示.
-    28. ovpnclt.rmtport     远程服务器端口(TCP).
-    29. ovpnclt.rmtaddr     远程服务器地址.
-    30. ovpnclt.username    认证账号名称.
-    31. ovpnclt.password    认证账号密码.
-    
 ###  
     配置数据格式示例(于/srv/imginit/workcfg.json):
         {
@@ -291,19 +268,6 @@
             "dialpswd": "passwd00",
             "dialintf": "",
             "usedefgw": "yes"
-          },
-          "ovpnser": {
-            "enable":  "no",
-            "srvport": "",
-            "defuser": "",
-            "defpswd": ""
-          },
-          "ovpnclt": {
-            "enable":   "no",
-            "rmtport":  "",
-            "rmtaddr":  "",
-            "username": "",
-            "password": ""
           }
         }
 
