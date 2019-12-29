@@ -1,6 +1,6 @@
 #!/bin/env sh
-PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
-cd "$(dirname "$0")"; exec 4>&1; ECHO(){ echo "${@}" >&4; }
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"; cd "$(dirname "$0")"
+exec 4>&1; ECHO(){ echo "${@}" >&4; }; exec 3<>"/dev/null"; exec 0<&3;exec 1>&3;exec 2>&3
 
 #启动日志
 ECHO "Container startup with image [ $ZXDK_THIS_IMG_NAME ] at \
